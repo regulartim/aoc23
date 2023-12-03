@@ -1,3 +1,4 @@
+import re
 import time
 from itertools import product
 from math import prod
@@ -20,16 +21,10 @@ def get_neighbours(number: str, coord: tuple) -> set:
 
 def parse_numbers(lines: list) -> dict:
 	result = {}
+	pattern = r"\d+"
 	for y, line in enumerate(lines):
-		buffer = ""
-		for x, char in enumerate(line.strip() + "."):
-			if char.isdigit():
-				buffer += char
-				continue
-			if buffer:
-				coord = x - len(buffer), y
-				result[coord] = buffer
-				buffer = ""
+		for match in re.finditer(pattern, line):
+			result[(match.start(), y)] = match[0]
 	return result
 
 def parse_symbols(lines: list) -> dict:
