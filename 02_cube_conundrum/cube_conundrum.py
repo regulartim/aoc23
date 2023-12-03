@@ -8,7 +8,6 @@ begin = time.time()
 
 BAG_CONTENT = {"red": 12, "green": 13, "blue": 14}
 
-
 def parse_subgame(subgame: str) -> dict:
 	result = {}
 	for s in subgame.split(","):
@@ -31,8 +30,7 @@ def get_fewest_cube_count(game: list) -> dict:
 	result = defaultdict(int)
 	for subgame in game:
 		for colour, n in subgame.items():
-			if result[colour] < n:
-				result[colour] = n
+			result[colour] = max(n, result[colour])
 	return result
 
 

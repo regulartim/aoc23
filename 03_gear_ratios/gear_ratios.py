@@ -51,14 +51,13 @@ gear_symbols = {k: [] for k, v in symbols.items() if v == "*"}
 
 part_numbers = []
 for coordinates, n in numbers.items():
-	neighbours = get_neighbours(n, coordinates)
-	if symbols.keys() & neighbours:
+	neighbour_coords = get_neighbours(n, coordinates)
+	if symbols.keys() & neighbour_coords:
 		part_numbers.append(int(n))
-	for g_coords in gear_symbols.keys() & neighbours:
-		gear_symbols[g_coords].append(int(n))
+	for gear_coords in gear_symbols.keys() & neighbour_coords:
+		gear_symbols[gear_coords].append(int(n))
 
-gears = [numbers for _, numbers in gear_symbols.items() if len(numbers) == 2]
-gear_ratios = [prod(numbers) for numbers in gears]
+gear_ratios = [prod(numbers) for numbers in gear_symbols.values() if len(numbers) == 2]
 
 print(f"Part 1: {sum(n for n in part_numbers)}")
 print(f"Part 2: {sum(gear_ratios)}")
