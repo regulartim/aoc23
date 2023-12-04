@@ -19,7 +19,7 @@ with open("input.txt") as file:
 
 matches = [len(get_matches(sc)) for sc in scratchcards]
 
-card_counts = [1 for i, _ in enumerate(matches)]
+card_counts = [1 for _ in enumerate(matches)]
 for idx, match_count in enumerate(matches):
 	for i in range(match_count):
 		other_card_idx = idx + 1 + i
