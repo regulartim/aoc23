@@ -5,9 +5,9 @@ begin = time.time()
 
 ###
 
-def get_matches(card: list) -> set:
+def get_match_count(card: list) -> int:
 	winning, ours = card
-	return set(winning) & set(ours)
+	return len(set(winning) & set(ours))
 
 
 scratchcards = []
@@ -17,7 +17,7 @@ with open("input.txt") as file:
 							for part in line.split(":")[1].split("|")]
 		scratchcards.append(scratchcard)
 
-matches = [len(get_matches(sc)) for sc in scratchcards]
+matches = [get_match_count(sc) for sc in scratchcards]
 
 card_counts = [1 for _ in enumerate(matches)]
 for idx, match_count in enumerate(matches):
