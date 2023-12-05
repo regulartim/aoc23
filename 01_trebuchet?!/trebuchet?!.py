@@ -14,7 +14,7 @@ ALL_DIGITS_TO_INT = SPELLED_DIGITS_TO_INT | DIGIT_STR_TO_INT
 def get_two_digit_numbers(lines: list, pattern: str) -> list:
 	extracted_digits = [re.findall(pattern, line) for line in lines]
 	result = []
-	for e, line in zip(extracted_digits, lines):
+	for e in extracted_digits:
 		first, last = e[0], e[-1]
 		first_as_int, last_as_int = ALL_DIGITS_TO_INT[first], ALL_DIGITS_TO_INT[last]
 		result.append(10*first_as_int + last_as_int)
