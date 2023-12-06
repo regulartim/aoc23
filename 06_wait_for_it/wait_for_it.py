@@ -6,16 +6,9 @@ begin = time.time()
 
 ###
 
-def winning_interval(n, m):
-	lower_bound = (n - sqrt(n**2 - 4*m)) / 2
-	upper_bound = (n + sqrt(n**2 - 4*m)) / 2
-	return lower_bound, upper_bound
-
 def ways_to_win(t: int, d: int) -> int:
-	lower_bound, upper_bound = winning_interval(t, d)
-	upper_bound = upper_bound - int(upper_bound == int(upper_bound))
-	win_count = int(upper_bound) - int(lower_bound)
-	return max(0, win_count)
+	max_losing_hold_time = int((t - sqrt(t**2 - 4*d)) / 2)
+	return t - 2*max_losing_hold_time - 1
 
 
 with open("input.txt") as file:
