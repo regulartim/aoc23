@@ -7,47 +7,49 @@ begin = time.time()
 
 PICTURE_CARD_VALUE = {"A": 14, "K": 13, "Q": 12, "J": 11, "T": 10}
 
-def hand_ordering_key(hand: list) -> list:
-	hand_type, hand, _ = hand
-	card_values = [int(PICTURE_CARD_VALUE.get(card, card)) for card in hand]
-	return [int(hand_type[0])] + card_values
-
-def get_type(hand: list, part2: bool) -> str:
-	hand, _ = hand
-	c = Counter(hand)
-
+def hand_type(hand: str, part2: bool) -> tuple:
+	card_counts = Counter(hand)
 	if part2:
-		del c["J"]
-		if not c:
-			return "6-Five of a kind"
-		most_common_card = c.most_common()[0][0]
+		del card_counts["J"]
+		most_common_card = card_counts.most_common()[0][0] if card_counts else "A"
 		hand = hand.replace("J", most_common_card)
-		c = Counter(hand)
+		card_counts = Counter(hand)
 
-	most_common_card_count = c.most_common()[0][1]
-	match most_common_card_count, len(c):
-		case 5, 1: return "6-Five of a kind"
-		case 4, 2: return "5-Four of a kind"
-		case 3, 2: return "4-Full house"
-		case 3, 3: return "3-Three of a kind"
-		case 2, 3: return "2-Two pair"
-		case 2, 4: return "1-One pair"
-		case 1, 5: return "0-High card"
-		case _, _: raise ValueError(hand, most_common_card_count, c)
+	most_common_card_count = card_counts.most_common()[0][1]
+	match most_common_card_count, len(card_counts):
+		case 5, 1: return (6, "Five of a kind")
+		case 4, 2: return (5, "Four of a kind")
+		case 3, 2: return (4, "Full house")
+		case 3, 3: return (3, "Three of a kind")
+		case 2, 3: return (2, "Two pair")
+		case 2, 4: return (1, "One pair")
+		case 1, 5: return (0, "High card")
+		case _, _: raise ValueError(hand, most_common_card_count, card_counts)
 
-def calculate_winnings(raw_hands: list, part2: bool) -> list:
-	typed_hands = [[get_type(hand, part2)] + hand for hand in raw_hands]
-	sorted_hands = sorted(typed_hands, key=hand_ordering_key)
-	return [int(hand[-1]) * (idx+1) for idx, hand in enumerate(sorted_hands)]
+def hand_ordering_key(play: tuple, part2: bool) -> tuple:
+	hand, _ = play
+	type_idx, _ = hand_type(hand, part2)
+	card_values = [int(PICTURE_CARD_VALUE.get(card, card)) for card in hand]
+	return (type_idx, *card_values)
+
+def calculate_winnings(sorted_plays: list) -> list:
+	winnings = []
+	for idx, play in enumerate(sorted_plays):
+		_, bid = play
+		rank = idx + 1
+		winnings.append(int(bid) * rank)
+	return winnings
 
 
-hands = []
 with open("input.txt") as file:
-	hands = [line.strip().split() for line in file.readlines()]
+	plays = [tuple(line.strip().split()) for line in file.readlines()]
 
-p1_winnings = calculate_winnings(hands, False)
+plays.sort(key=lambda play: hand_ordering_key(play, part2=False))
+p1_winnings = calculate_winnings(plays)
+
 PICTURE_CARD_VALUE["J"] = 1
-p2_winnings = calculate_winnings(hands, True)
+plays.sort(key=lambda play: hand_ordering_key(play, part2=True))
+p2_winnings = calculate_winnings(plays)
 
 print(f"Part 1: {sum(p1_winnings)}")
 print(f"Part 2: {sum(p2_winnings)}")
