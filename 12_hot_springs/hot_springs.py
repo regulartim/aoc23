@@ -10,30 +10,37 @@ def unfold(springs: str, groups: tuple, factor: int) -> tuple:
 	groups = groups*factor
 	return (springs, groups)
 
-@cache
-def count_arrangemens(springs: str, groups: tuple, matched_group_count: int, current_seq_len: int) -> int:
-	group_len = groups[matched_group_count] if matched_group_count < len(groups) else 0
+def next_states(springs: str, groups: tuple, current_seq_len: int):
+	forward_state       = (springs[1:], groups, current_seq_len)
+	add_to_seq_state    = (springs[1:], groups, current_seq_len + 1)
+	seq_completed_state = (springs[1:], groups[1:], 0)
 
-	if not springs:
-		matched_group_count += 1 if current_seq_len > 0 else 0
-		if current_seq_len != group_len:
-			return 0
-		if matched_group_count != len(groups):
+	empty_sequence     = current_seq_len == 0
+	completed_sequence = current_seq_len == groups[0]
+	match springs[0], empty_sequence, completed_sequence:
+		case ".", _,    True : yield seq_completed_state
+		case ".", True, _    : yield forward_state
+		case "#", _,    False: yield add_to_seq_state
+		case "?", _,    True : yield seq_completed_state
+		case "?", True, _    : yield from (add_to_seq_state, forward_state)
+		case "?", _,    _    : yield add_to_seq_state
+		case _,   _,    _    : pass
+
+@cache
+def count_arrangemens(springs: str, groups: tuple, current_seq_len: int) -> int:
+	if not groups:
+		if "#" in springs:
 			return 0
 		return 1
 
-	fwd_state = (matched_group_count, current_seq_len)
-	add_to_seq_state = (matched_group_count, current_seq_len+1)
-	add_group_state = (matched_group_count+1, 0)
-	match springs[0], current_seq_len > 0, current_seq_len == group_len:
-		case ".", True,  True : new_states = [add_group_state]
-		case ".", False, _    : new_states = [fwd_state]
-		case "#", _,     False: new_states = [add_to_seq_state]
-		case "?", True,  True : new_states = [add_group_state]
-		case "?", True,  False: new_states = [add_to_seq_state]
-		case "?", False, _    : new_states = [add_to_seq_state, fwd_state]
-		case _,   _,     _    : new_states = []
-	return sum(count_arrangemens(springs[1:], groups, *new) for new in new_states)
+	if not springs:
+		if current_seq_len == groups[0]:
+			groups = groups[1:]
+		if groups:
+			return 0
+		return 1
+
+	return sum(count_arrangemens(*state) for state in next_states(springs, groups, current_seq_len))
 
 
 condition_records = []
@@ -43,10 +50,9 @@ with open("input.txt") as file:
 		nums = tuple(int(n) for n in nums.split(","))
 		condition_records.append((spr, nums))
 
-starting_state = (0,0)
 unfolded_records = (unfold(*row, 5) for row in condition_records)
-p1_counts = (count_arrangemens(*row, *starting_state) for row in condition_records)
-p2_counts = (count_arrangemens(*row, *starting_state) for row in unfolded_records)
+p1_counts = (count_arrangemens(*row, 0) for row in condition_records)
+p2_counts = (count_arrangemens(*row, 0) for row in unfolded_records)
 
 print(f"Part 1: {sum(p1_counts)}")
 print(f"Part 2: {sum(p2_counts)}")
