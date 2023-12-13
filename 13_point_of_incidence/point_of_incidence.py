@@ -5,12 +5,13 @@ begin = time.time()
 ###
 
 def cols(rows: list) -> list:
-	return ["".join([row[i] for row in rows]) for i, _ in enumerate(rows[0])]
+	return ["".join(col) for col in zip(*rows)]
 
 def str_distance(s: str, t: str) -> int:
 	return sum(a != b for a, b in zip(s, t))
 
 def reflection_lines(rows: list) -> dict:
+	''' Returns mapping: numbers of smudges to index of reflection line '''
 	result = {}
 	for idx, (a, b) in enumerate(zip(rows, rows[1:])):
 		dist = str_distance(a, b)
