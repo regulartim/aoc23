@@ -1,79 +1,63 @@
 import time
+from functools import cache
 
 begin = time.time()
 
 ###
 
 TARGET_CYCLE_COUNT = 1_000_000_000
-DIRECTIONS = {
-	"N": (0,-1),
-	"W": (-1,0),
-	"S": (0,1),
-	"E": (1,0)
-}
 
-def add_tuples(s: tuple, t: tuple) -> tuple:
-	return tuple(n + m for n, m in zip(s, t))
+def rotate_clockwise(grid: list, x_times=1) -> list:
+	for _ in range(x_times):
+		grid = ["".join(reversed(column)) for column in zip(*grid)]
+	return grid
 
-def move_rocks(rocks: set, space: set, d: str) -> tuple:
-	result, moved = set(), False
-	for rock in rocks:
-		next_pos = add_tuples(rock, DIRECTIONS[d])
-		if next_pos not in space or next_pos in rocks:
-			result.add(rock)
-			continue
-		result.add(next_pos)
-		moved = True
-	return (result, moved)
+@cache
+def move_rocks_left(row: str) -> str:
+	results = []
+	for section in row.split("#"):
+		rock_count = section.count("O")
+		space_count = len(section) - rock_count
+		results.append("O" * rock_count + "." * space_count)
+	return "#".join(results)
 
-def tilt_platform(rocks: set, space: set, d: str) -> set:
-	moved = True
-	while moved:
-		rocks, moved = move_rocks(rocks, space, d)
-	return rocks
+def perform_cycle(grid: list) -> list:
+	for _ in range(4):
+		grid = [move_rocks_left(row) for row in grid]
+		grid = rotate_clockwise(grid)
+	return grid
 
-def perform_cycle(rocks: set, space: set) -> set:
-	for direction in "NWSE":
-		rocks = tilt_platform(rocks, space, direction)
-	return rocks
+def calculate_load(grid: list) -> int:
+	max_load_per_rock = len(grid[0])
+	column_loads = [(max_load_per_rock - idx) * col.count("O") for idx, col in enumerate(zip(*grid))]
+	return sum(column_loads)
 
-def calculate_load(rocks: set, max_y: int) -> int:
-	return sum(max_y+1-y for _, y in rocks)
-
-def find_pattern(l: list) -> list:
-	l = l[::-1]
+def find_pattern(loads: list) -> list:
+	loads = loads[::-1]
 	pattern = []
-	for idx, elem in enumerate(l):
-		pattern.append(elem)
-		if pattern != l[idx+1:idx+1+len(pattern)]:
+	for idx, load in enumerate(loads):
+		pattern.append(load)
+		if pattern != loads[idx+1:idx+1+len(pattern)]:
 			continue
 		return pattern[::-1]
 	return []
 
 
-round_rocks = set()
-empty_space = set()
 with open("input.txt") as file:
-	for row, line in enumerate(file.readlines()):
-		for col, char in enumerate(line.strip()):
-			if char == "#":
-				continue
-			if char == "O":
-				round_rocks.add((col, row))
-			empty_space.add((col, row))
-		y_dim = row
+	rock_grid = [line.strip() for line in file.readlines()]
 
-state_after_first_tilt = tilt_platform(round_rocks, empty_space, "N")
+rock_grid = rotate_clockwise(rock_grid, 3) # such that north is on the left side of the grid
+state_after_first_tilt = [move_rocks_left(row) for row in rock_grid]
 
-loads, reoccuring_pattern = [], []
+recorded_loads, reoccuring_pattern = [], []
 while len(reoccuring_pattern) < 4:
-	round_rocks = perform_cycle(round_rocks, empty_space)
-	loads.append(calculate_load(round_rocks, y_dim))
-	reoccuring_pattern = find_pattern(loads)
+	rock_grid = perform_cycle(rock_grid)
+	recorded_loads.append(calculate_load(rock_grid))
+	reoccuring_pattern = find_pattern(recorded_loads)
 
-target_idx = (TARGET_CYCLE_COUNT-len(loads)) % len(reoccuring_pattern) - 1
+target_idx = (TARGET_CYCLE_COUNT-len(recorded_loads)) % len(reoccuring_pattern) - 1
 
-print(f"Part 1: {calculate_load(state_after_first_tilt, y_dim)}")
+print(f"Part 1: {calculate_load(state_after_first_tilt)}")
 print(f"Part 2: {reoccuring_pattern[target_idx]}")
 
 ###
