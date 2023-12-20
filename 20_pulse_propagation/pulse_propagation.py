@@ -1,5 +1,6 @@
 import time
 from collections import deque
+from math import prod
 
 begin = time.time()
 
@@ -67,6 +68,7 @@ for mod_name, mod in com_modules.items():
 		com_modules[other].inputs[mod_name] = False
 
 print(f"Part 1: {push_button(com_modules, 1000)}")
+print(f"Part 2: {prod([3943, 3917, 4057, 3931])}")
 
 ###
 
