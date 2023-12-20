@@ -1,6 +1,6 @@
 import time
 from collections import deque
-from math import prod
+from math import lcm
 
 begin = time.time()
 
@@ -36,22 +36,32 @@ class Module:
 def add_tuples(s: tuple, t: tuple) -> tuple:
 	return tuple(n + m for n, m in zip(s, t))
 
-def perform_sequence(modules: dict) -> int:
-	counter = [0,0]
+def perform_sequence(modules: dict, monitored: list) -> int:
+	counter, found = [0,0], None
 	q = deque()
 	q.append(["button", False, "broadcaster"])
 	while q:
 		sender, pulse, receiver = q.popleft()
 		counter[pulse] += 1
 		q.extend(modules[receiver].receive(sender, pulse))
-	return tuple(counter)
+		if receiver in monitored and not pulse:
+			found = receiver
+	return tuple(counter), found
 
-def push_button(modules: dict, n_times: int) -> int:
-	result = (0,0)
-	for _ in range(n_times):
-		counter = perform_sequence(modules)
-		result = add_tuples(counter, result)
-	return result[0] * result[1]
+def push_button(modules: dict, n_times: int, monitored: list) -> int:
+	total_count, pulse_count_product = (0,0), 0
+	cycle_lengths = {}
+	sequence_count = 0
+	while len(cycle_lengths) < len(monitored):
+		sequence_count += 1
+		counter, found = perform_sequence(modules, monitored)
+		total_count = add_tuples(counter, total_count)
+		if sequence_count == n_times:
+			pulse_count_product = total_count[0] * total_count[1]
+		if found and found not in cycle_lengths:
+			cycle_lengths[found] = sequence_count
+	return pulse_count_product, lcm(*list(cycle_lengths.values()))
+
 
 com_modules = {}
 with open("input.txt") as file:
@@ -67,8 +77,14 @@ for mod_name, mod in com_modules.items():
 	for other in mod.outputs:
 		com_modules[other].inputs[mod_name] = False
 
-print(f"Part 1: {push_button(com_modules, 1000)}")
-print(f"Part 2: {prod([3943, 3917, 4057, 3931])}")
+assert len(com_modules["rx"].inputs) == 1
+rx_predecessor = next(iter(com_modules["rx"].inputs))
+rx_prepredecessors = list(com_modules[rx_predecessor].inputs.keys())
+
+p1_result, p2_result = push_button(com_modules, 1000, rx_prepredecessors)
+
+print(f"Part 1: {p1_result}")
+print(f"Part 2: {p2_result}")
 
 ###
 
