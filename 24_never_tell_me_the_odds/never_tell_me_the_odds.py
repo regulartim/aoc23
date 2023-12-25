@@ -25,11 +25,11 @@ def crossing_point(a: list, b: list) -> tuple:
 	return tuple(result)
 
 def throwing_position(hails: list) -> tuple:
-	x, y, z, vx, vy, vz = z3.Ints("x y z vx vy vz")
+	x, y, z, vx, vy, vz = z3.Reals("x y z vx vy vz")
 	solver = z3.Solver()
 	for idx, h in enumerate(hails):
 		hx, hy, hz, hvx, hvy, hvz = h
-		t = z3.Int(f"t{idx}")
+		t = z3.Real(f"t{idx}")
 		solver.add(t >= 0)
 		solver.add(hx + hvx * t == x + vx * t)
 		solver.add(hy + hvy * t == y + vy * t)
