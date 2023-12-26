@@ -11,7 +11,10 @@ with open("input.txt") as file:
 		k, vals = line.strip().split(":")
 		wire_graph.add_edges_from((k, v) for v in vals.strip().split())
 
-group_a, group_b = next(nx.community.girvan_newman(wire_graph))
+the_three_wires = nx.minimum_edge_cut(wire_graph)
+wire_graph.remove_edges_from(the_three_wires)
+group_a, group_b = nx.connected_components(wire_graph)
+
 print(f"Part 1: {len(group_a) * len(group_b)}")
 
 ###
