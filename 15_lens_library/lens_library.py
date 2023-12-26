@@ -1,5 +1,5 @@
 import time
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 begin = time.time()
 
@@ -14,7 +14,7 @@ def hash_algorithm(string: str) -> int:
 	return current_value
 
 def create_hashmap(sequence: list) -> dict:
-	result = defaultdict(OrderedDict)
+	result = defaultdict(dict)
 	for step in sequence:
 		if step[-1].isdigit():
 			assert step[-2] == "="
