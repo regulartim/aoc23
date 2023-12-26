@@ -21,9 +21,8 @@ def get_neighbours(number: str, coord: tuple) -> set:
 
 def parse_numbers(lines: list) -> dict:
 	result = {}
-	pattern = r"\d+"
 	for y, line in enumerate(lines):
-		for match in re.finditer(pattern, line):
+		for match in re.finditer(r"\d+", line):
 			result[(match.start(), y)] = match[0]
 	return result
 
