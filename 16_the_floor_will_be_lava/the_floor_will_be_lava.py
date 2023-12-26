@@ -12,7 +12,7 @@ def add_tuples(s: tuple, t: tuple) -> tuple:
 	return tuple(n + m for n, m in zip(s, t))
 
 @cache
-def get_next_states(point: tuple, dir_idx: int, tile: str) -> list:
+def next_states(point: tuple, dir_idx: int, tile: str) -> list:
 	if tile == "." or tile == "-|"[dir_idx%2]:
 		return [(*add_tuples(point, DIRECTIONS[dir_idx]), dir_idx)]
 	if tile in "\\/":
@@ -36,7 +36,7 @@ def energized_tiles(grid: dict, start: tuple) -> set:
 		if point not in grid:
 			continue
 		seen.add(current)
-		stack += get_next_states(point, dir_idx, grid[point])
+		stack += next_states(point, dir_idx, grid[point])
 	return {(x,y) for x, y, dir_idx in seen}
 
 
